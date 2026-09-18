@@ -43,7 +43,7 @@ TEST_CASE("Invalid commands print unsuccessful", "[unsuccessful]") {
         CHECK(executeCommand(tree, badCommands[i]) == "unsuccessful");
     }
 
-    // the tree should still only have Alice in it
+    // the tree should only have Alice in it
     vector<int> expected = {12345678};
     CHECK(tree.inorderIDs() == expected);
 }
@@ -61,7 +61,7 @@ TEST_CASE("Insert and all four rotations", "[insert][rotations]") {
     }
 
     // after each rotation the middle value (20000000) should be the root,
-    // so the preorder traversal should be 20000000, 10000000, 30000000
+    //  preorder going through should be 20000000, 10000000, 30000000
 
     SECTION("Left rotation (right-right case)") {
         insertIDs(tree, {10000000, 20000000, 30000000});
@@ -93,7 +93,7 @@ TEST_CASE("Insert 100 nodes, remove 10, check inorder", "[large]") {
     AVLTree tree;
     vector<int> expected;
 
-    // insert 100 different 8-digit IDs (10000000, 10001000, 10002000, ...)
+    // insert 100 different 8-digit IDs
     for (int i = 0; i < 100; i++) {
         int id = 10000000 + i * 1000;
         string command = "insert \"Student\" " + to_string(id);
@@ -109,7 +109,7 @@ TEST_CASE("Insert 100 nodes, remove 10, check inorder", "[large]") {
     }
 
     // remove 10 random IDs
-    srand(3530);  // same seed every run so the test is repeatable
+    srand(3530);
     for (int i = 0; i < 10; i++) {
         int index = rand() % expected.size();
         string command = "remove " + to_string(expected[index]);
