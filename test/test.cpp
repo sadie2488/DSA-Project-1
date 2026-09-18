@@ -1,53 +1,150 @@
+// Name: Sarah Spellman
+// UDIF: 27793702
+
 #include <catch2/catch_test_macros.hpp>
 #include <iostream>
 
 // uncomment and replace the following with your own headers
 // #include "AVL.h"
+#include <algorithm>
+#include <random>
+#include <set>
+#include <string>
+#include <vector>
+
+#include "AVLTree.h"
+#include "Commands.h"
 
 using namespace std;
 
-// the syntax for defining a test is below. It is important for the name to be unique, but you can group multiple tests with [tags]. A test can have [multiple][tags] using that syntax.
-TEST_CASE("Example Test Name - Change me!", "[flag]"){
-	// instantiate any class members that you need to test here
-	int one = 1;
-
-	// anything that evaluates to false in a REQUIRE block will result in a failing test 
-	REQUIRE(one == 0); // fix me!
-
-	// all REQUIRE blocks must evaluate to true for the whole test to pass
-	REQUIRE(false); // also fix me!
+// Inserts each ID through the command interface and requires "successful".
+static void insertIDs(AVLTree& tree, const std::vector<int>& ids) {
+    for (int id : ids) {
+        std::string command = "insert \"Student\" " + std::to_string(id);
+        REQUIRE(executeCommand(tree, command) == "successful");
+    }
 }
 
-TEST_CASE("Test 2", "[flag]"){
-	// you can also use "sections" to share setup code between tests, for example:
-	int one = 1;
+// test 1: at least five commands that print "unsuccessful"
+TEST_CASE("Invalid commands print unsuccessful", "[unsuccessful]") {
+    AVLTree tree;
 
-	SECTION("num is 2") {
-		int num = one + 1;
-		REQUIRE(num == 2);
-	};
+    REQUIRE(executeCommand(tree, R"(insert "Alice" 12345678)") == "successful");
 
-	SECTION("num is 3") {
-		int num = one + 2;
-		REQUIRE(num == 3);
-	};
+    const std::vector<std::string> badCommands = {
+        R"(insert "A11y" 45679999)",   // digits in name
+        R"(insert "Bob!" 45679999)",   // symbol in name
+        R"(insert "Carl" 1234567)",    // ID too short (7 digits)
+        R"(insert "Dana" 123456789)",  // ID too long (9 digits)
+        R"(insert "Evan" 1234abcd)",   // ID not numeric
+        R"(insert Frank 23456789)",    // name missing quotes
+        R"(insert "Gina" 12345678)",   // duplicate ID
+        R"(remove 87654321)",          // ID not in tree
+        R"(search 87654321)",          // ID not in tree
+        R"(search "Nobody")",          // name not in tree
+        R"(removeInorder 5)",          // index out of range
+        R"(insrt "Hank" 34567890)",    // misspelled command
+        R"(printInorderr)"             // misspelled command
+    };
 
-	// each section runs the setup code independently to ensure that they don't affect each other
+    for (const std::string& command : badCommands) {
+        INFO("Command: " << command);
+        CHECK(executeCommand(tree, command) == "unsuccessful");
+    }
+
+    // none of the bad commands should have changed the tree
+    const std::vector<int> expected = {12345678};
+    CHECK(tree.inorderIDs() == expected);
 }
 
-// you must write 5 unique, meaningful tests for credit on the testing portion of this project!
+// test 2: insert command and all four rotation cases
+TEST_CASE("Insert and all four rotations", "[insert][rotations]") {
+    AVLTree tree;
 
-// the provided test from the template is below.
+    SECTION("Insert matches sample output") {
+        REQUIRE(executeCommand(tree, R"(insert "Brandon" 45679999)") == "successful");
+        REQUIRE(executeCommand(tree, R"(insert "Brian" 35459999)") == "successful");
+        REQUIRE(executeCommand(tree, R"(insert "Briana" 87879999)") == "successful");
+        REQUIRE(executeCommand(tree, R"(insert "Bella" 95469999)") == "successful");
+        CHECK(executeCommand(tree, "printInorder") == "Brian, Brandon, Briana, Bella");
+        CHECK(executeCommand(tree, "printLevelCount") == "3");
+    }
 
-TEST_CASE("Example BST Insert", "[flag]"){
-	/*
-		MyAVLTree tree;   // Create a Tree object
-		tree.insert(3);
-		tree.insert(2);
-		tree.insert(1);
-		std::vector<int> actualOutput = tree.inorder();
-		std::vector<int> expectedOutput = {1, 2, 3};
-		REQUIRE(expectedOutput.size() == actualOutput.size());
-		REQUIRE(actualOutput == expectedOutput);
-	*/
+    SECTION("Left rotation (right-right case)") {
+        insertIDs(tree, {10000000, 20000000, 30000000});
+        const std::vector<int> expected = {20000000, 10000000, 30000000};
+        CHECK(tree.preorderIDs() == expected);
+        CHECK(tree.levelCount() == 2);
+    }
+
+    SECTION("Right rotation (left-left case)") {
+        insertIDs(tree, {30000000, 20000000, 10000000});
+        const std::vector<int> expected = {20000000, 10000000, 30000000};
+        CHECK(tree.preorderIDs() == expected);
+        CHECK(tree.levelCount() == 2);
+    }
+
+    SECTION("Left-right rotation (left-right case)") {
+        insertIDs(tree, {30000000, 10000000, 20000000});
+        const std::vector<int> expected = {20000000, 10000000, 30000000};
+        CHECK(tree.preorderIDs() == expected);
+        CHECK(tree.levelCount() == 2);
+    }
+
+    SECTION("Right-left rotation (right-left case)") {
+        insertIDs(tree, {10000000, 30000000, 20000000});
+        const std::vector<int> expected = {20000000, 10000000, 30000000};
+        CHECK(tree.preorderIDs() == expected);
+        CHECK(tree.levelCount() == 2);
+    }
+
+    SECTION("Rotation below the root (left-left at a subtree)") {
+        insertIDs(tree, {50000000, 30000000, 70000000, 20000000, 10000000});
+        const std::vector<int> expected = {50000000, 20000000, 10000000, 30000000, 70000000};
+        CHECK(tree.preorderIDs() == expected);
+        CHECK(tree.levelCount() == 3);
+    }
+}
+
+// test 3: insert 100 nodes, remove 10 random ones, and check inorder
+TEST_CASE("Insert 100 nodes, remove 10, check inorder", "[large]") {
+    AVLTree tree;
+    std::mt19937 rng(3530);  // fixed seed so any failure is reproducible
+    std::uniform_int_distribution<int> idDist(10000000, 99999999);
+
+    // insert 100 unique random 8-digit IDs, std::set tracks the expected order
+    std::set<int> expected;
+    while (expected.size() < 100) {
+        int id = idDist(rng);
+        if (expected.insert(id).second) {
+            insertIDs(tree, {id});
+        }
+    }
+
+    // verify  all 100 insertions in order
+    std::vector<int> actual = tree.inorderIDs();
+    REQUIRE(actual.size() == 100);
+    int index = 0;
+    for (int id : expected) {
+        CHECK(actual[index] == id);
+        index++;
+    }
+
+    // pick 10 distinct random IDs and remove them
+    std::vector<int> toRemove(expected.begin(), expected.end());
+    std::shuffle(toRemove.begin(), toRemove.end(), rng);
+    toRemove.resize(10);
+    for (int id : toRemove) {
+        REQUIRE(executeCommand(tree, "remove " + std::to_string(id)) == "successful");
+        expected.erase(id);
+    }
+
+    // verify the remaining 90 nodes in order
+    actual = tree.inorderIDs();
+    REQUIRE(actual.size() == 90);
+    index = 0;
+    for (int id : expected) {
+        CHECK(actual[index] == id);
+        index++;
+    }
 }
