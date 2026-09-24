@@ -54,5 +54,8 @@ private:
     Node* root = nullptr;
 
     // TODO: add private recursive helpers here (rotations, height updates,
+    Node* insertHelper(Node* node, const std::string& name, int id, bool& added);
+    Node* searchIDHelper(Node* node, int id) const;
+
     // traversal helpers, cleanup, etc.)
 };
