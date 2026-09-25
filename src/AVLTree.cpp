@@ -33,6 +33,33 @@ bool AVLTree::insert(const std::string& name, int id) {
     return added;
 }
 
+// left, node, right
+void AVLTree::inorderHelper(Node* node, std::vector<Node*>& nodes) const {
+    if (node == nullptr)
+        return;
+    inorderHelper(node->left, nodes);
+    nodes.push_back(node);
+    inorderHelper(node->right, nodes);
+}
+
+// node, left, right
+void AVLTree::preorderHelper(Node* node, std::vector<Node*>& nodes) const {
+    if (node == nullptr)
+        return;
+    nodes.push_back(node);
+    preorderHelper(node->left, nodes);
+    preorderHelper(node->right, nodes);
+}
+
+//left, right, node
+void AVLTree::postorderHelper(Node* node, std::vector<Node*>& nodes) const {
+    if (node == nullptr)
+        return;
+    postorderHelper(node->left, nodes);
+    postorderHelper(node->right, nodes);
+    nodes.push_back(node);
+}
+
 bool AVLTree::remove(int id) {
     (void)id;
     return false;  // TODO
@@ -56,11 +83,64 @@ std::vector<int> AVLTree::searchName(const std::string& name) const {
     return {};  // TODO
 }
 
-std::vector<std::string> AVLTree::inorderNames() const { return {}; }    // TODO
-std::vector<std::string> AVLTree::preorderNames() const { return {}; }   // TODO
-std::vector<std::string> AVLTree::postorderNames() const { return {}; }  // TODO
-std::vector<int> AVLTree::inorderIDs() const { return {}; }              // TODO
-std::vector<int> AVLTree::preorderIDs() const { return {}; }             // TODO
+// five traversal ways
+//in order names
+std::vector<std::string> AVLTree::inorderNames() const {
+    std::vector<Node*> nodes;
+    inorderHelper(root, nodes);
+
+    std::vector<std::string> names;
+    for (Node* n : nodes)
+        names.push_back(n->name);
+    return names;
+}
+
+//preorder names
+std::vector<std::string> AVLTree::preorderNames() const {
+    std::vector<Node*> nodes;
+    preorderHelper(root, nodes);
+
+    std::vector<std::string> names;
+    for (Node* n : nodes)
+        names.push_back(n->name);
+    return names;
+}
+
+//postorder names
+std::vector<std::string> AVLTree::postorderNames() const {
+    std::vector<Node*> nodes;
+    postorderHelper(root, nodes);
+
+    std::vector<std::string> names;
+    for (Node* n : nodes)
+        names.push_back(n->name);
+    return names;
+}
+
+// inorder IDs
+std::vector<int> AVLTree::inorderIDs() const {
+    std::vector<Node*> nodes;
+    inorderHelper(root, nodes);
+
+    std::vector<int> ids;
+    for (Node* n : nodes)
+        ids.push_back(n->id);
+    return ids;
+}
+
+// preorder IDs
+std::vector<int> AVLTree::preorderIDs() const {
+    std::vector<Node*> nodes;
+    preorderHelper(root, nodes);
+
+    std::vector<int> ids;
+    for (Node* n : nodes)
+        ids.push_back(n->id);
+    return ids;
+}
+
+
+
 
 int AVLTree::levelCount() const {
     return 0;  // TODO

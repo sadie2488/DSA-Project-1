@@ -57,5 +57,11 @@ private:
     Node* insertHelper(Node* node, const std::string& name, int id, bool& added);
     Node* searchIDHelper(Node* node, int id) const;
 
+    void inorderHelper(Node* node, std::vector<Node*>& nodes) const;
+    void preorderHelper(Node* node, std::vector<Node*>& nodes) const;
+    void postorderHelper(Node* node, std::vector<Node*>& nodes) const;
+    void searchNameHelper(Node* node, const std::string& name, std::vector<int>& ids) const;
+    void destroy(Node* node);
+
     // traversal helpers, cleanup, etc.)
 };
