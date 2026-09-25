@@ -78,9 +78,20 @@ bool AVLTree::searchID(int id, std::string& nameOut) const {
     return true;
 }
 
+// searchName helper
+void AVLTree::searchNameHelper(Node* node, const std::string& name, std::vector<int>& ids) const {
+    if (node == nullptr)
+        return;
+    if (node->name == name)
+        ids.push_back(node->id);
+    searchNameHelper(node->left, name, ids);
+    searchNameHelper(node->right, name, ids);
+}
+
 std::vector<int> AVLTree::searchName(const std::string& name) const {
-    (void)name;
-    return {};  // TODO
+    std::vector<int> ids;
+    searchNameHelper(root, name, ids);
+    return ids;
 }
 
 // five traversal ways
