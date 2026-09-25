@@ -124,3 +124,71 @@ TEST_CASE("Insert 100 nodes, remove 10, check inorder", "[large]") {
         CHECK(actual[i] == expected[i]);
     }
 }
+
+// test 4: edge cases
+TEST_CASE("Edge cases", "[edge]") {
+    AVLTree tree;
+
+    SECTION("Empty tree") {
+        CHECK(executeCommand(tree, "printLevelCount") == "0");
+        CHECK(executeCommand(tree, "printInorder") == "");
+        CHECK(executeCommand(tree, "remove 12345678") == "unsuccessful");
+        CHECK(executeCommand(tree, "removeInorder 0") == "unsuccessful");
+    }
+
+    SECTION("IDs with leading zeros keep all 8 digits") {
+        REQUIRE(executeCommand(tree, R"(insert "Zoe" 00012345)") == "successful");
+        CHECK(executeCommand(tree, "search 00012345") == "Zoe");
+        CHECK(executeCommand(tree, R"(search "Zoe")") == "00012345");
+    }
+
+    SECTION("Same name prints every ID in preorder") {
+        insertIDs(tree, {20000000, 10000000, 30000000});
+        CHECK(executeCommand(tree, R"(search "Student")") == "20000000\n10000000\n30000000");
+    }
+
+    SECTION("removeInorder on the last spot") {
+        insertIDs(tree, {10000000, 20000000, 30000000});
+        CHECK(executeCommand(tree, "removeInorder 3") == "unsuccessful");
+        CHECK(executeCommand(tree, "removeInorder 2") == "successful");
+        vector<int> expected = {10000000, 20000000};
+        CHECK(tree.inorderIDs() == expected);
+    }
+}
+
+// test 5: the three deletion cases
+TEST_CASE("Remove with no, one, and two children", "[remove]") {
+    AVLTree tree;
+
+    // tree looks like:
+    //   40 is the root, 20 and 60 are its kids
+    //   10 and 30 under 20, 50 is 60s left kid
+    insertIDs(tree, {40000000, 20000000, 60000000, 10000000, 30000000, 50000000});
+    vector<int> start = {40000000, 20000000, 10000000, 30000000, 60000000, 50000000};
+    REQUIRE(tree.preorderIDs() == start);
+
+    SECTION("No children") {
+        REQUIRE(executeCommand(tree, "remove 10000000") == "successful");
+        vector<int> expected = {40000000, 20000000, 30000000, 60000000, 50000000};
+        CHECK(tree.preorderIDs() == expected);
+    }
+
+    SECTION("One child") {
+        REQUIRE(executeCommand(tree, "remove 60000000") == "successful");
+        vector<int> expected = {40000000, 20000000, 10000000, 30000000, 50000000};
+        CHECK(tree.preorderIDs() == expected);
+    }
+
+    SECTION("Two children (inorder successor takes its spot)") {
+        REQUIRE(executeCommand(tree, "remove 20000000") == "successful");
+        vector<int> expected = {40000000, 30000000, 10000000, 60000000, 50000000};
+        CHECK(tree.preorderIDs() == expected);
+
+        // root has two kids too so 50000000 should move up
+        REQUIRE(executeCommand(tree, "remove 40000000") == "successful");
+        vector<int> expected2 = {50000000, 30000000, 10000000, 60000000};
+        CHECK(tree.preorderIDs() == expected2);
+    }
+}
+
+
