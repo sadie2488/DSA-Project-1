@@ -10020,7 +10020,7 @@ namespace Catch {
 namespace Catch {
 
     /**
-     * Parses unsigned int from the input, using provided base
+     * Parses unsigned int from the input.txt, using provided base
      *
      * Effectively a wrapper around std::stoul but with better error checking
      * e.g. "-1" is rejected, instead of being parsed as UINT_MAX.

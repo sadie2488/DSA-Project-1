@@ -743,7 +743,7 @@ namespace Catch {
             const bool has_all =
                 bazelShardIndex && bazelShardTotal && bazelShardInfoFile;
             if ( !has_all ) {
-                // We provide nice warning message if the input is
+                // We provide nice warning message if the input.txt is
                 // misconfigured.
                 auto warn = []( const char* env_var ) {
                     Catch::cerr()
@@ -1337,7 +1337,7 @@ namespace Catch {
 
             errStream->stream()
                 << colour->guardColour( Colour::Red )
-                << "\nError(s) in input:\n"
+                << "\nError(s) in input.txt:\n"
                 << TextFlow::Column( result.errorMessage() ).indent( 2 )
                 << "\n\n";
             errStream->stream() << "Run with -? for usage\n\n" << std::flush;
@@ -3085,7 +3085,7 @@ namespace Catch {
         auto const loadTestNamesFromFile = [&]( std::string const& filename ) {
                 std::ifstream f( filename.c_str() );
                 if( !f.is_open() )
-                    return ParserResult::runtimeError( "Unable to load input file: '" + filename + '\'' );
+                    return ParserResult::runtimeError( "Unable to load input.txt file: '" + filename + '\'' );
 
                 std::string line;
                 while( std::getline( f, line ) ) {
@@ -3285,7 +3285,7 @@ namespace Catch {
                 ["-D"]["--min-duration"]
                 ( "show test durations for tests taking at least the given number of seconds" )
             | Opt( loadTestNamesFromFile, "filename" )
-                ["-f"]["--input-file"]
+                ["-f"]["--input.txt-file"]
                 ( "load test names to run from a file" )
             | Opt( config.filenamesAsTags )
                 ["-#"]["--filenames-as-tags"]
@@ -4952,9 +4952,9 @@ namespace Catch {
             size_t pos = 0;
             const auto ret = std::stoull( trimmed, &pos, base );
 
-            // We did not consume the whole input, so there is an issue
+            // We did not consume the whole input.txt, so there is an issue
             // This can be bunch of different stuff, like multiple numbers
-            // in the input, or invalid digits/characters and so on. Either
+            // in the input.txt, or invalid digits/characters and so on. Either
             // way, we do not want to return the partially parsed result.
             if ( pos != trimmed.size() ) {
                 return {};
@@ -4969,7 +4969,7 @@ namespace Catch {
             // no conversion could be performed
         }
         CATCH_CATCH_ANON( std::out_of_range const& ) {
-            // the input does not fit into an unsigned long long
+            // the input.txt does not fit into an unsigned long long
         }
         return {};
     }
@@ -6883,8 +6883,8 @@ namespace Catch {
             auto reverseEnd = std::make_reverse_iterator( methodName.begin() );
 
             // We make a simplifying assumption that ":" is only present
-            // in the input as part of "::" from C++ typenames (this is
-            // relatively safe assumption because the input is generated
+            // in the input.txt as part of "::" from C++ typenames (this is
+            // relatively safe assumption because the input.txt is generated
             // as stringification of type through preprocessor).
             auto lastColons = std::find( reverseStart, reverseEnd, ':' ) + 1;
             auto secondLastColons =
@@ -9613,7 +9613,7 @@ namespace Catch {
     void defaultListTests(std::ostream& out, ColourImpl* streamColour, std::vector<TestCaseHandle> const& tests, bool isFiltered, Verbosity verbosity) {
         // We special case this to provide the equivalent of old
         // `--list-test-names-only`, which could then be used by the
-        // `--input-file` option.
+        // `--input.txt-file` option.
         if (verbosity == Verbosity::Quiet) {
             listTestNamesOnly(out, tests);
             return;

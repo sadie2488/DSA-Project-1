@@ -1,0 +1,7 @@
+6
+insert Bob 12345678
+insert "Bob" 1234567
+Insert "Bob" 12345678
+insert "Bob" 00012345
+search 00012345
+search "Bob"
