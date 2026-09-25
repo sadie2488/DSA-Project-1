@@ -53,6 +53,10 @@ private:
 
     Node* root = nullptr;
 
+    int getHeight(Node* node) const;
+    int getBalance(Node* node) const;
+    void updateHeight(Node* node);
+
     // TODO: add private recursive helpers here (rotations, height updates,
     Node* insertHelper(Node* node, const std::string& name, int id, bool& added);
     Node* searchIDHelper(Node* node, int id) const;

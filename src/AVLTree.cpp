@@ -3,8 +3,35 @@
 // STUBS: these compile so the tests can run (and fail) for the check-in.
 // Replace each body with your real implementation.
 
+//the destructor
+void AVLTree::destroy(Node* node) {
+    if (node == nullptr)
+        return;
+    destroy(node->left);
+    destroy(node->right);
+    delete node;
+}
+
 AVLTree::~AVLTree() {
-    // TODO: free every node (e.g. a recursive post-order delete helper)
+    destroy(root);
+}
+
+// empty spot counts as 0
+int AVLTree::getHeight(Node* node) const {
+    if (node == nullptr)
+        return 0;
+    return node->height;
+}
+
+// positive = left heavy, negative = right heavy
+int AVLTree::getBalance(Node* node) const {
+    if (node == nullptr)
+        return 0;
+    return getHeight(node->left) - getHeight(node->right);
+}
+
+void AVLTree::updateHeight(Node* node) {
+    node->height = 1 + std::max(getHeight(node->left), getHeight(node->right));
 }
 
 AVLTree::Node* AVLTree::insertHelper(Node* node, const std::string& name, int id, bool& added) {
@@ -16,6 +43,7 @@ AVLTree::Node* AVLTree::insertHelper(Node* node, const std::string& name, int id
         node->left = insertHelper(node->left, name, id, added);
     else if (id > node->id)
         node->right = insertHelper(node->right, name, id, added);
+    updateHeight(node);
     return node;
 }
 
@@ -151,8 +179,7 @@ std::vector<int> AVLTree::preorderIDs() const {
 }
 
 
-
-
+// root's height is the number of levels
 int AVLTree::levelCount() const {
-    return 0;  // TODO
+    return getHeight(root);
 }
