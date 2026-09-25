@@ -67,5 +67,14 @@ private:
     void searchNameHelper(Node* node, const std::string& name, std::vector<int>& ids) const;
     void destroy(Node* node);
 
+    // roations
+    Node* rotateLeft(Node* node);
+    Node* rotateRight(Node* node);
+    Node* rotateLeftRight(Node* node);
+    Node* rotateRightLeft(Node* node);
+    Node* rebalance(Node* node);
+
+    // removing helper
+    Node* removeHelper(Node* node, int id, bool& removed);
     // traversal helpers, cleanup, etc.)
 };

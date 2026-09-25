@@ -43,8 +43,9 @@ AVLTree::Node* AVLTree::insertHelper(Node* node, const std::string& name, int id
         node->left = insertHelper(node->left, name, id, added);
     else if (id > node->id)
         node->right = insertHelper(node->right, name, id, added);
-    updateHeight(node);
-    return node;
+    else
+        return node; // duplicate id, dont add
+    return rebalance(node);
 }
 
 AVLTree::Node* AVLTree::searchIDHelper(Node* node, int id) const {
@@ -88,14 +89,53 @@ void AVLTree::postorderHelper(Node* node, std::vector<Node*>& nodes) const {
     nodes.push_back(node);
 }
 
+AVLTree::Node* AVLTree::removeHelper(Node* node, int id, bool& removed) {
+    if (node == nullptr)
+        return nullptr; // not found
+
+    if (id< node->id) {
+        node->left = removeHelper(node->left, id, removed);
+    }
+    else if (id > node->id) {
+        node->right = removeHelper(node->right, id, removed);
+    }
+    else {
+        removed = true;
+
+        //if no kids or one kid -- just hook the kid (or null) to the parent
+        if (node->left == nullptr || node->right == nullptr) {
+            Node* child = (node->left != nullptr) ? node->left : node->right;
+            delete node;
+            return child;
+        }
+
+        // two kids: grab the inorder successor (smallest in right subtree)
+        Node* successor = node->right;
+        while (successor->left != nullptr)
+            successor = successor->left;
+
+        // copy its data  then delete the successor from the right side
+        node->name = successor->name;
+        node->id = successor->id;
+        node->right = removeHelper(node->right, successor->id, removed);
+    }
+    return rebalance(node);
+}
+
 bool AVLTree::remove(int id) {
-    (void)id;
-    return false;  // TODO
+    bool removed = false;
+    root = removeHelper(root, id, removed);
+    return removed;
 }
 
 bool AVLTree::removeInorder(int n) {
-    (void)n;
-    return false;  // TODO
+    std::vector<Node*> nodes;
+    inorderHelper(root, nodes);
+
+    if (n < 0 || n >= (int)nodes.size())
+        return false;
+
+    return remove(nodes[n]->id);
 }
 
 bool AVLTree::searchID(int id, std::string& nameOut) const {
@@ -178,6 +218,64 @@ std::vector<int> AVLTree::preorderIDs() const {
     return ids;
 }
 
+
+// right-right case: right child comes up
+AVLTree::Node* AVLTree::rotateLeft(Node* node) {
+    Node* newRoot = node->right;
+    Node* moved = newRoot->left;
+    newRoot->left = node;
+    node->right = moved;
+    updateHeight(node);  // node is lower now so do it first
+    updateHeight(newRoot);
+    return newRoot;
+}
+
+// left-left case: left child comes up
+AVLTree::Node* AVLTree::rotateRight(Node* node) {
+    Node* newRoot = node->left;
+    Node* moved = newRoot->right;
+    newRoot->right = node;
+    node->left = moved;
+    updateHeight(node);
+    updateHeight(newRoot);
+    return newRoot;
+}
+
+//double roations
+
+// left-right case: fix the left child first, then it's a left-left
+AVLTree::Node* AVLTree::rotateLeftRight(Node* node) {
+    node->left = rotateLeft(node->left);
+    return rotateRight(node);
+}
+
+// right-left case: same idea mirrored
+AVLTree::Node* AVLTree::rotateRightLeft(Node* node) {
+    node->right = rotateRight(node->right);
+    return rotateLeft(node);
+}
+
+// call on the way back up after an insert/remove
+AVLTree::Node* AVLTree::rebalance(Node* node) {
+    updateHeight(node);
+    int balance = getBalance(node);
+
+    if (balance > 1) {
+        // left heavy
+        if (getBalance(node->left) >= 0)
+            return rotateRight(node);
+        else
+            return rotateLeftRight(node);
+    }
+    if (balance < -1) {
+        // right heavy
+        if (getBalance(node->right) <= 0)
+            return rotateLeft(node);
+        else
+            return rotateRightLeft(node);
+    }
+    return node;  // already balanced
+}
 
 // root's height is the number of levels
 int AVLTree::levelCount() const {
