@@ -1,9 +1,6 @@
 #include "AVLTree.h"
 #include <algorithm>
 
-// STUBS: these compile so the tests can run (and fail) for the check-in.
-// Replace each body with your real implementation.
-
 //the destructor helper
 void AVLTree::destroy(Node* node) {
     if (node == nullptr)
