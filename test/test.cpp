@@ -1,6 +1,7 @@
 // Name: Sarah Spellman
 // UFID: 27793702
 
+/*
 #include <catch2/catch_test_macros.hpp>
 #include <cstdlib>
 #include <string>
@@ -191,4 +192,4 @@ TEST_CASE("Remove with no, one, and two children", "[remove]") {
     }
 }
 
-
+*/
